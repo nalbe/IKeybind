@@ -94,13 +94,13 @@ private:
 	///
 	/// @param event_idx_ The index of the keybind event to validate.
 	/// @return True if the sequence is valid, false otherwise.
-	bool isValidSequence(size_type event_idx_)
+	bool isValidSequence(size_type event_idx_) const
 	{
 		for (size_type j{ 1 }; j < aKeybindSize[event_idx_]; ++j) {
 			if (!(aKey[aKeybind[event_idx_][j]].state() & (eState::push | eState::hold | eState::delay))) { return false; }
 			if (aKey[aKeybind[event_idx_][j]].pushTime() > aKey[aKeybind[event_idx_][j - 1]].pushTime()) { return false; }
 		}
-		return (aPrimaryKeyState[event_idx_] & aKey[aKeybind[event_idx_][0]].state());
+		return (aKey[aKeybind[event_idx_][0]].state() != eState::none);
 	}
 
 	/// @brief Checks if a specific key has been marked as a modifier in a detected keybind.
@@ -145,15 +145,35 @@ private:
 		// Iterate through all defined keybinds
 		for (size_type i{}; i != Event_Count; ++i) {
 			// Skip if the current keybind has not been assigned (is empty)
-			if (isEmptyKeybind(i)) { continue; }
+			if (isEmptyKeybind(i)) {
+				continue;
+			}
 			// Prefer longest sequence for primary key
 			if (aKeyBestEventIdx[aKeybind[i][0]]) {
-				if (aKeybindSize[i] <= aKeybindSize[aKeyBestEventIdx[aKeybind[i][0]] -1]) { continue; }
+				if (aKeybindSize[i] < aKeybindSize[aKeyBestEventIdx[aKeybind[i][0]] -1]) {
+					continue;
+				}
+				/*
+					CHANGES BEGIN
+				*/
+				if (aKeybindSize[i] == aKeybindSize[aKeyBestEventIdx[aKeybind[i][0]] -1]) {
+					if (!(aPrimaryKeyState[i] & aKey[aKeybind[i][0]].state())) {
+						continue;
+					}
+				}
+				/*
+					CHANGES END
+				*/
+
 			}
 			// Skip if primary key already used as modifier
-			if (isUsedAsModifier(aKeybind[i][0])) { continue; }
+			if (isUsedAsModifier(aKeybind[i][0])) {
+				continue;
+			}
 			// Ensures all keys are in the correct state
-			if (!isValidSequence(i)) { continue; }
+			if (!isValidSequence(i)) {
+				continue;
+			}
 
 			// If all checks pass, this keybind is a candidate
 			aKeyBestEventIdx[aKeybind[i][0]] = i +1;  // store its index (plus 1)
@@ -163,6 +183,15 @@ private:
 		for (size_type i{}; i != Key_Count; ++i) {
 			// If no event was found for this primary key, skip
 			if (!aKeyBestEventIdx[i]) { continue; }
+
+			/*
+				CHANGES BEGIN
+			*/
+			if (!(aPrimaryKeyState[aKeyBestEventIdx[i] -1] & aKey[i].state())) { continue; }
+			/*
+				CHANGES END
+			*/
+
 			// Mark the modifiers of the detected event
 			markModifiersAsUsed(aKeyBestEventIdx[i] -1);
 			// Mark the event as occurred
@@ -230,23 +259,6 @@ public:
 		aKeybindSize[event_idx_] = N;
 	}
 
-	/// @brief Overrides IKeybindBase::update().
-	/// This method is called repeatedly to update the state of all managed keys
-	/// and then to detect if any defined keybind events have occurred.
-	void update() override
-	{
-		// Reset all event occurrence flags for the current cycle
-		aEventOccurred.fill(false);
-		// Update each individual key and reset its 'used as modifier' flag if it's idle or disabled
-		for (size_type i{}; i != Key_Count; ++i) {
-			aKey[i].update();
-			if (aKey[i].state() == eState::none
-				or aKey[i].state() & eState::idle) { aUsedAsModifier[i] = false; }
-		}
-		// Perform the core keybind detection logic
-		searchKeybind();
-	}
-
 	/// @brief Gets a reference to a key object by its index.
 	///
 	/// @param key_idx_ The index of the key to retrieve.
@@ -269,6 +281,25 @@ public:
 	void forEachKey(UnaryFn_ fn_)
 	{
 		for (auto& it : aKey) { fn_(it); }
+	}
+
+	/// @brief Overrides IKeybindBase::update().
+	/// This method is called repeatedly to update the state of all managed keys
+	/// and then to detect if any defined keybind events have occurred.
+	void update() override
+	{
+		// Reset all event occurrence flags for the current cycle
+		aEventOccurred.fill(false);
+		// Update each individual key and reset its 'used as modifier' flag if it's idle or disabled
+		for (size_type i{}; i != Key_Count; ++i) {
+			aKey[i].update();
+			if (aKey[i].state() == eState::none
+				or aKey[i].state() & eState::idle) { 
+				aUsedAsModifier[i] = false;
+			}
+		}
+		// Perform the core keybind detection logic
+		searchKeybind();
 	}
 
 	/// @brief Overrides IKeybindBase::isEvent().
