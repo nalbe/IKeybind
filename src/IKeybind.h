@@ -60,8 +60,8 @@ private:
 	/// @brief  An array holding all the individual key objects.
 	std::array<Key, Key_Count> aKey;
 
-    /// @brief A 2D array storing the key indices for each defined keybind event.
-    /// `aKeybind[event_idx][key_in_sequence_idx]` stores the index of the key in `aKey`.
+	/// @brief A 2D array storing the key indices for each defined keybind event.
+	/// `aKeybind[event_idx][key_in_sequence_idx]` stores the index of the key in `aKey`.
  	std::array<std::array<size_type, Keybind_Max>, Event_Count> aKeybind;
 
 	/// @brief An array storing the actual number of keys in each defined keybind.
@@ -69,7 +69,7 @@ private:
 	std::array<size_type, Event_Count> aKeybindSize;
 
 	/// @brief An array storing the required state for the primary key of each event.
-	/// `aPrimaryKeyState[event_idx]` specifies the `eState` that the first key
+	/// `aPrimaryKeyState[event_idx]` specifies the `eState` that the final key
 	/// in the keybind sequence (the primary key) must be in for the event to trigger.
 	std::array<eState, Event_Count> aPrimaryKeyState;
 
