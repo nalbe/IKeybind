@@ -183,15 +183,8 @@ private:
 		for (size_type i{}; i != Key_Count; ++i) {
 			// If no event was found for this primary key, skip
 			if (!aKeyBestEventIdx[i]) { continue; }
-
-			/*
-				CHANGES BEGIN
-			*/
+			// Check primary key state
 			if (!(aPrimaryKeyState[aKeyBestEventIdx[i] -1] & aKey[i].state())) { continue; }
-			/*
-				CHANGES END
-			*/
-
 			// Mark the modifiers of the detected event
 			markModifiersAsUsed(aKeyBestEventIdx[i] -1);
 			// Mark the event as occurred
