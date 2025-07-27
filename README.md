@@ -106,14 +106,14 @@ void setup()
 	// Event 1: Triggered when D12 is released (Single key)
 	kb.assign<1>(1, { D12 }, eKeyState::release);
 
-	// Event 2: Triggered when D12 is pressed rapidly while D11 is held
+	// Event 2: Triggered when D11 is pressed rapidly while D12 is held
 	kb.assign<2>(2, { D12, D11 }, eKeyState::rapid);
-	// Event 3: Triggered when D12 is held down while D11 is held
+	// Event 3: Triggered when D11 is held down while D12 is held
 	kb.assign<2>(3, { D12, D11 }, eKeyState::hold);
 
-	// Event 4: Triggered when D11 is pressed rapidly while D12 is held
+	// Event 4: Triggered when D12 is pressed rapidly while D11 is held
 	kb.assign<2>(4, { D11, D12 }, eKeyState::rapid);
-	// Event 5: Triggered when D11 is held down while D12 is held
+	// Event 5: Triggered when D12 is held down while D11 is held
 	kb.assign<2>(5, { D11, D12 }, eKeyState::hold);
 }
 
